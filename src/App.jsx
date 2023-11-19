@@ -14,6 +14,8 @@ export default function App() {
     (notes[0] && notes[0].id) || ""
   )
 
+  // onSnapshot() method listens for any changes in a Firestore database and updates the front end automatically without refreshing the page. This is in contrast to the getDocs() method, which requires the browser to be refreshed in order to see any changes.
+
   useEffect(()=>{
     // localStorage.setItem("notes",JSON.stringify(notes))
     const unsubsribe = onSnapshot(notescollection, (snapshot)=>{
