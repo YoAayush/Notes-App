@@ -17,4 +17,8 @@ module.exports = {
       { allowConstantExport: true },
     ],
   },
+
+  "rules": {
+    "no-console": "warn"
+  }
 }

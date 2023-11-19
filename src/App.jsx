@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react"
 import Sidebar from "./Sidebar.jsx"
 import Editor from "./Editor.jsx"
 import Split from "react-split"
-import { nanoid } from "nanoid"
+// import { nanoid } from "nanoid"
+import { addDoc, onSnapshot , doc, deleteDoc, setDoc} from "firebase/firestore"
 import './App.css';
+import { notescollection , db } from "./Firebase.jsx"
 
 export default function App() {
   const [notes, setNotes] = useState(JSON.parse(localStorage.getItem("notes")) || [])
@@ -13,17 +15,30 @@ export default function App() {
   )
 
   useEffect(()=>{
-    localStorage.setItem("notes",JSON.stringify(notes))
-    console.log(notes[0].body.split("\n"))
-  },[notes])
+    // localStorage.setItem("notes",JSON.stringify(notes))
+    const unsubsribe = onSnapshot(notescollection, (snapshot)=>{
+      //sync up our local notes array with the snapshot data
+      // console.log("things are changing !!");
+      const notesArr = snapshot.docs.map(doc=>({
+        ...doc.data(),
+        id : doc.id
+      }))
+      setNotes(notesArr)
+    })
+    return unsubsribe
+    // console.log(notes[0].body.split("\n"))
+  // },[notes])
+},[])
 
-  function createNewNote() {
+  async function createNewNote() {
     const newNote = {
-      id: nanoid(),
+      // id: nanoid(),
       body: "Type your markdown note's title here"
     }
-    setNotes(prevNotes => [newNote, ...prevNotes])
-    setCurrentNoteId(newNote.id)
+    // setNotes(prevNotes => [newNote, ...prevNotes])
+    const newNoteRef = await addDoc(notescollection,newNote) //returns a promise
+    // setCurrentNoteId(newNote.id)
+    setCurrentNoteId(newNoteRef.id)
   }
 
   // function updateNote(text) {
@@ -34,18 +49,23 @@ export default function App() {
   //   }))
   // }
 
-  function updateNote(text) {
-    setNotes(oldNotes => {
-      const newArray = []
-      for(let i=0; i < oldNotes.length; i++){
-        if(oldNotes[i].id === currentNoteId){
-          newArray.unshift({...oldNotes[i], body: text})
-        } else{
-          newArray.push(oldNotes[i])
-        }
-      }
-      return newArray
-    })
+  // function updateNote(text) {
+  //   setNotes(oldNotes => {
+  //     const newArray = []
+  //     for(let i=0; i < oldNotes.length; i++){
+  //       if(oldNotes[i].id === currentNoteId){
+  //         newArray.unshift({...oldNotes[i], body: text})
+  //       } else{
+  //         newArray.push(oldNotes[i])
+  //       }
+  //     }
+  //     return newArray
+  //   })
+  // }
+
+  async function updateNote(text){
+    const docRef = doc(db,"notes",currentNoteId)
+    await setDoc(docRef,{body: text}, {merge: true})
   }
 
   function findCurrentNote() {
@@ -54,10 +74,15 @@ export default function App() {
     }) || notes[0]
   }
 
-  function deleteNote(event,noteId){
-    event.stopPropagation()
-    console.log("deleted note " , noteId)
-    setNotes(oldNotes => oldNotes.filter(note => note.id !== noteId))
+  // function deleteNote(event,noteId){
+  //   event.stopPropagation()
+  //   console.log("deleted note " , noteId)
+  //   setNotes(oldNotes => oldNotes.filter(note => note.id !== noteId))
+  // }
+
+  async function deleteNote(noteId){
+    const docref = doc(db,"notes",noteId)
+    await deleteDoc(docref)
   }
 
   return (
