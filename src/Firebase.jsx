@@ -21,5 +21,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 // The getAnalytics() method in Firebase Analytics is used to get a reference to the Firebase Analytics object. This object can then be used to log events, set user properties, and track user engagement.
 const analytics = getAnalytics(app);
-export const db = getFirestore(app); //reference to the root
+export const db = getFirestore(app); 
 export const notescollection = collection(db,"notes"); //get a collection refference (documents) that refers to the collection at specified path.
